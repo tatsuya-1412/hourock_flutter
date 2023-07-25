@@ -35,8 +35,15 @@ class RockDetail extends StatelessWidget {
                 'sumika',
                 style: TextStyle(fontSize: 36, fontWeight: FontWeight.bold),
               ),
-              const Chip(
-                label: Text('2013年5月17日'),
+              Chip(
+                label: Text(
+                  '2013年',
+                  style: TextStyle(
+                    color: Colors.yellow.computeLuminance() > 0.5
+                        ? Colors.black
+                        : Colors.white
+                  ),
+                ),
                 backgroundColor: Colors.yellow,
               )
             ],
