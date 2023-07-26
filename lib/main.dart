@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:hourock_flutter/consts/rockapi.dart';
+import 'package:hourock_flutter/models/rock.dart';
 import 'package:hourock_flutter/rock_list_item.dart';
 import 'package:hourock_flutter/settings.dart';
 import 'package:provider/provider.dart';
@@ -10,10 +12,20 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   final SharedPreferences pref = await SharedPreferences.getInstance();
   final themeModeNotifier = ThemeModeNotifier(pref);
-  runApp(ChangeNotifierProvider(
-    create: (context) => themeModeNotifier,
-    child: const MyApp(),
-  ));
+  final rockNotifier = RockNotifier();
+  runApp(
+    MultiProvider(
+      providers: [
+        ChangeNotifierProvider<ThemeModeNotifier>(
+          create: (context) => themeModeNotifier,
+        ),
+        ChangeNotifierProvider<RockNotifier>(
+          create: (context) => rockNotifier,
+        ),
+      ],
+      child: const MyApp(),
+    ),
+  );
 }
 
 class MyApp extends StatefulWidget {
@@ -54,7 +66,7 @@ class _TopPageState extends State<TopPage> {
       bottomNavigationBar: BottomNavigationBar(
         onTap: (index) => {
           setState(
-            () => currentbnb = index,
+                () => currentbnb = index,
           )
         },
         currentIndex: currentbnb,
@@ -73,14 +85,42 @@ class _TopPageState extends State<TopPage> {
   }
 }
 
-class RockList extends StatelessWidget {
+class RockList extends StatefulWidget {
   const RockList({super.key});
   @override
+  _RockList createState() => _RockList();
+}
+
+class _RockList extends State<RockList> {
+  static const int more = 10;
+  int rockCount = more;
+  @override
   Widget build(BuildContext context) {
-    return ListView.builder(
-        padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 16),
-        itemCount: 1000,
-        itemBuilder: (context, index) => RockListItem(index: index)
+    return Consumer<RockNotifier>(
+      builder: (context, rocks, child) => ListView.builder(
+          padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 16),
+          itemCount: rockCount + 1,
+          itemBuilder: (context, index) {
+            if (index == rockCount) {
+              return OutlinedButton(
+                child: const Text('more'),
+                onPressed: () => {
+                  setState(
+                        () {
+                      rockCount += more;
+                      if (rockCount > rockMaxId) {
+                        rockCount = rockMaxId;
+                      }
+                    },
+                  )
+                },
+              );
+            }
+            return RockListItem(
+              rock: rocks.byId(artistIds[index]),
+            );
+          }
+      ),
     );
   }
 }

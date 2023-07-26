@@ -1,53 +1,72 @@
 import 'package:flutter/material.dart';
+import 'package:hourock_flutter/models/rock.dart';
 
 class RockDetail extends StatelessWidget {
-  const RockDetail({super.key});
+  const RockDetail({Key? key, required this.rock}) : super(key: key);
+  final Rock rock;
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Stack(
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.all(32),
-                      child: Image.network(
-                        "https://i.scdn.co/image/ab6761610000e5eb709184ceb74ae0bc0b51d34e",
-                        width: 100,
-                        height: 100,
+      body: SafeArea(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            ListTile(
+              leading: IconButton(
+                icon: Icon(Icons.arrow_back),
+                onPressed: () => Navigator.pop(context),
+              ),
+            ),
+            const Spacer(),
+            Stack(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(32),
+                    child: Image.network(
+                      rock.imageUrl,
+                      width: 100,
+                      height: 100,
+                    ),
+                  ),
+                  // Container(
+                  //   padding: const EdgeInsets.all(8),
+                  //   child: Text(
+                  //     rock.id,
+                  //     style: TextStyle(
+                  //       fontSize: 16,
+                  //       fontWeight: FontWeight.bold,
+                  //     ),
+                  //   ),
+                  // )
+                ]
+            ),
+            Text(
+              rock.name,
+              style: TextStyle(fontSize: 36, fontWeight: FontWeight.bold),
+            ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: rock.genres.map(
+                    (genre) => Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 8),
+                  child: Chip(
+                    backgroundColor: Colors.yellow,
+                    label: Text(
+                      genre,
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        color: Colors.yellow.computeLuminance() > 0.5
+                            ? Colors.black
+                            : Colors.white,
                       ),
                     ),
-                    Container(
-                      padding: const EdgeInsets.all(8),
-                      child: const Text(
-                        'ソニー・ミュージック',
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    )
-                  ]
-              ),
-              const Text(
-                'sumika',
-                style: TextStyle(fontSize: 36, fontWeight: FontWeight.bold),
-              ),
-              Chip(
-                label: Text(
-                  '2013年',
-                  style: TextStyle(
-                    color: Colors.yellow.computeLuminance() > 0.5
-                        ? Colors.black
-                        : Colors.white
                   ),
                 ),
-                backgroundColor: Colors.yellow,
-              )
-            ],
-          )
+              ).toList(),
+            ),
+            const Spacer(),
+          ],
+        ),
       ),
     );
   }
