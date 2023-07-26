@@ -1,29 +1,44 @@
 import 'package:flutter/material.dart';
 import 'package:hourock_flutter/rock_list_item.dart';
+import 'package:hourock_flutter/settings.dart';
+import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
-void main() {
-  runApp(const MyApp());
+import 'models/theme_mode.dart';
+
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  final SharedPreferences pref = await SharedPreferences.getInstance();
+  final themeModeNotifier = ThemeModeNotifier(pref);
+  runApp(ChangeNotifierProvider(
+    create: (context) => themeModeNotifier,
+    child: const MyApp(),
+  ));
 }
 
-class MyApp extends StatelessWidget {
+class MyApp extends StatefulWidget {
   const MyApp({super.key});
+  @override
+  _MyAppState createState() => _MyAppState();
+}
 
+class _MyAppState extends State<MyApp> {
   @override
   Widget build(BuildContext context) {
-    ThemeMode mode = ThemeMode.system;
-    return MaterialApp(
-      title: 'Hourock Flutter',
-      theme: ThemeData.light(),
-      darkTheme: ThemeData.dark(),
-      themeMode: mode,
-      home: const TopPage(),
+    return Consumer<ThemeModeNotifier>(
+      builder: (context, mode, child) => MaterialApp(
+        title: 'Hourock Flutter',
+        theme: ThemeData.light(),
+        darkTheme: ThemeData.dark(),
+        themeMode: mode.mode,
+        home: const TopPage(),
+      ),
     );
   }
 }
 
 class TopPage extends StatefulWidget {
   const TopPage({super.key});
-
   @override
   _TopPageState createState() => _TopPageState();
 }
@@ -66,21 +81,6 @@ class RockList extends StatelessWidget {
         padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 16),
         itemCount: 1000,
         itemBuilder: (context, index) => RockListItem(index: index)
-    );
-  }
-}
-
-class Settings extends StatelessWidget {
-  const Settings({super.key});
-  @override
-  Widget build(BuildContext context) {
-    return ListView(
-      children: const [
-        ListTile(
-          leading: Icon(Icons.lightbulb),
-          title: Text('Dark/Light Mode'),
-        )
-      ],
     );
   }
 }
