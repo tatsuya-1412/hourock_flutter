@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:hourock_flutter/consts/rockapi.dart';
 import 'package:hourock_flutter/models/rock.dart';
 import 'package:hourock_flutter/rock_list_item.dart';
@@ -13,6 +14,7 @@ void main() async {
   final SharedPreferences pref = await SharedPreferences.getInstance();
   final themeModeNotifier = ThemeModeNotifier(pref);
   final rockNotifier = RockNotifier();
+  await dotenv.load(fileName: '.env');
   runApp(
     MultiProvider(
       providers: [
