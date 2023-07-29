@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:hourock_flutter/consts/rockapi.dart';
 import 'package:hourock_flutter/models/favorite.dart';
 import 'package:hourock_flutter/models/rock.dart';
+import 'package:hourock_flutter/rock_detail.dart';
 import 'package:hourock_flutter/rock_list_item.dart';
 import 'package:provider/provider.dart';
 
@@ -16,6 +17,7 @@ class _RockList extends State<RockList> {
   static const int pageSize = 10;
   int _currentPage = 1;
   bool isFavoriteMode = false;
+  bool isGridMode = false;
 
   int itemCount(int favsCount, int page) {
     int ret = page * pageSize;
@@ -49,9 +51,15 @@ class _RockList extends State<RockList> {
     return true;
   }
 
-  void changeMode(bool currentFavMode) {
+  void changeFavMode(bool currentFavMode) {
     setState(() {
       isFavoriteMode = !currentFavMode;
+    });
+  }
+
+  void changeGridMode(bool currentGridMode) {
+    setState(() {
+      isGridMode = !currentGridMode;
     });
   }
 
@@ -60,32 +68,11 @@ class _RockList extends State<RockList> {
     return Consumer<FavoriteNotifier>(
       builder: (context, favs, child) => Column(
         children: [
-          Container(
-            height: 24,
-            alignment: Alignment.topRight,
-            child: IconButton(
-              padding: const EdgeInsets.all(0),
-              icon: const Icon(Icons.auto_awesome_outlined),
-              onPressed: () async {
-                var ret = await showModalBottomSheet<bool>(
-                  context: context,
-                  shape: const RoundedRectangleBorder(
-                    borderRadius: BorderRadius.only(
-                      topLeft: Radius.circular(40),
-                      topRight: Radius.circular(40),
-                    )
-                  ),
-                  builder: (BuildContext context) {
-                    return ViewModeBottomSheet(
-                      favMode: isFavoriteMode,
-                    );
-                  },
-                );
-                if (ret != null && ret) {
-                  changeMode(isFavoriteMode);
-                }
-              },
-            ),
+          TopHeadMenu(
+            isFavoriteMode: isFavoriteMode,
+            changeFavMode: changeFavMode,
+            isGridMode: isGridMode,
+            changeGridMode: changeGridMode,
           ),
           Expanded(
             child: Consumer<RockNotifier>(
@@ -93,27 +80,60 @@ class _RockList extends State<RockList> {
                 if (itemCount(favs.favs.length, _currentPage) == 0) {
                   return const Text('no data');
                 } else {
-                  return ListView.builder(
-                    padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 16),
-                    itemCount: itemCount(favs.favs.length, _currentPage) + 1,
-                    itemBuilder: (context, index) {
-                      if (index == itemCount(favs.favs.length, _currentPage)) {
-                        return OutlinedButton(
-                          child: const Text('more'),
-                          onPressed: isLastPage(favs.favs.length, _currentPage)
-                              ? null
-                              : () =>
-                          {
-                            setState(() => _currentPage++),
-                          },
-                        );
-                      } else {
-                        return RockListItem(
-                          rock: rocks.byId(itemId(favs.favs, index)),
-                        );
-                      }
-                    },
-                  );
+                  if (isGridMode) {
+                    return GridView.builder(
+                      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 3),
+                      itemCount: itemCount(favs.favs.length, _currentPage) + 1,
+                      itemBuilder: (context, index) {
+                        if (index == itemCount(favs.favs.length, _currentPage)) {
+                          return Padding(
+                            padding: const EdgeInsets.all(16),
+                            child: OutlinedButton(
+                              child: const Text('more'),
+                              style: OutlinedButton.styleFrom(
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(20),
+                                )
+                              ),
+                              onPressed: isLastPage(favs.favs.length, _currentPage)
+                                ? null
+                                : () => setState(() {
+                                  _currentPage++;
+                                },
+                              ),
+                            ),
+                          );
+                        } else {
+                          return RockGridItem(
+                            rock: rocks.byId(itemId(favs.favs, index)),
+                          );
+                        }
+                      },
+                    );
+                  } else {
+                    return ListView.builder(
+                      padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 16),
+                      itemCount: itemCount(favs.favs.length, _currentPage) + 1,
+                      itemBuilder: (context, index) {
+                        if (index == itemCount(favs.favs.length, _currentPage)) {
+                          return OutlinedButton(
+                            child: const Text('more'),
+                            onPressed: isLastPage(
+                                favs.favs.length, _currentPage)
+                                ? null
+                                : () =>
+                            {
+                              setState(() => _currentPage++),
+                            },
+                          );
+                        } else {
+                          return RockListItem(
+                            rock: rocks.byId(itemId(favs.favs, index)),
+                          );
+                        }
+                      },
+                    );
+                  }
                 }
               },
             ),
@@ -124,19 +144,69 @@ class _RockList extends State<RockList> {
   }
 }
 
-class ViewModeBottomSheet extends StatelessWidget {
-  const ViewModeBottomSheet({Key? key, required this.favMode}): super(key: key);
-  final bool favMode;
+class TopHeadMenu extends StatelessWidget {
+  const TopHeadMenu({
+    Key? key,
+    required this.isFavoriteMode,
+    required this.changeFavMode,
+    required this.isGridMode,
+    required this.changeGridMode,
+  }) : super(key: key);
+  final bool isFavoriteMode;
+  final Function(bool) changeFavMode;
+  final bool isGridMode;
+  final Function(bool) changeGridMode;
 
-  String mainText(bool fav) {
-    if (fav) {
-      return 'お気に入りのアーティストが表示されています';
-    } else {
-      return 'すべてのアーティストが表示されています';
-    }
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      height: 24,
+      alignment: Alignment.topRight,
+      child: IconButton(
+        padding: const EdgeInsets.all(0),
+        icon: const Icon(Icons.auto_awesome_outlined),
+        onPressed: () async {
+          await showModalBottomSheet<bool>(
+            context: context,
+            shape: const RoundedRectangleBorder(
+                borderRadius: BorderRadius.only(
+                  topLeft: Radius.circular(40),
+                  topRight: Radius.circular(40),
+                )
+            ),
+            builder: (BuildContext context) {
+              return ViewModeBottomSheet(
+                favMode: isFavoriteMode,
+                changeFavMode: changeFavMode,
+                gridMode: isGridMode,
+                changeGridMode: changeGridMode,
+              );
+            },
+          );
+        },
+      ),
+    );
+  }
+}
+
+class ViewModeBottomSheet extends StatelessWidget {
+  const ViewModeBottomSheet({
+    Key? key,
+    required this.favMode,
+    required this.changeFavMode,
+    required this.gridMode,
+    required this.changeGridMode,
+  }): super(key: key);
+  final bool favMode;
+  final Function(bool) changeFavMode;
+  final bool gridMode;
+  final Function(bool) changeGridMode;
+
+  String mainText() {
+    return '表示設定';
   }
 
-  String menuTitle(bool fav) {
+  String menuFavTitle(bool fav) {
     if (fav) {
       return '「すべて」表示に切り替え';
     } else {
@@ -144,11 +214,27 @@ class ViewModeBottomSheet extends StatelessWidget {
     }
   }
 
-  String menuSubtitle(bool fav) {
+  String menuFavSubtitle(bool fav) {
     if (fav) {
-      return 'すべてのアーティストが表示されます';
+      return '全てのポケモンが表示されます';
     } else {
-      return 'お気に入りに登録したアーティストのみが表示されます';
+      return 'お気に入りに登録したポケモンのみが表示されます';
+    }
+  }
+
+  String menuGridTitle(bool grid) {
+    if (grid) {
+      return 'リスト表示に切り替え';
+    } else {
+      return 'グリッド表示に切り替え';
+    }
+  }
+
+  String menuGridSubtitle(bool grid) {
+    if (grid) {
+      return 'ポケモンをグリッド表示します';
+    } else {
+      return 'ポケモンをリスト表示します';
     }
   }
 
@@ -171,7 +257,7 @@ class ViewModeBottomSheet extends StatelessWidget {
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
               child: Text(
-                mainText(favMode),
+                mainText(),
                 style: TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.bold,
@@ -181,13 +267,27 @@ class ViewModeBottomSheet extends StatelessWidget {
             ListTile(
               leading: const Icon(Icons.swap_horiz),
               title: Text(
-                menuTitle(favMode),
+                menuFavTitle(favMode),
               ),
               subtitle: Text(
-                menuSubtitle(favMode),
+                menuFavSubtitle(favMode),
               ),
               onTap: () {
-                Navigator.pop(context, true);
+                changeFavMode(favMode);
+                Navigator.pop(context);
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.swap_horiz),
+              title: Text(
+                menuGridTitle(gridMode),
+              ),
+              subtitle: Text(
+                menuGridSubtitle(gridMode),
+              ),
+              onTap: () {
+                changeGridMode(gridMode);
+                Navigator.pop(context);
               },
             ),
             OutlinedButton(
@@ -203,5 +303,56 @@ class ViewModeBottomSheet extends StatelessWidget {
         ),
       ),
     );
+  }
+}
+
+class RockGridItem extends StatelessWidget {
+  const RockGridItem({Key? key, required this.rock}) : super(key: key);
+  final Rock? rock;
+  @override
+  Widget build(BuildContext context) {
+    if (rock != null) {
+      return Column(
+        children: [
+          InkWell(
+            onTap: () => {
+              Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (BuildContext context) => RockDetail(rock: rock!),
+                ),
+              ),
+            },
+            child: Container(
+              height: 100,
+              width: 100,
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(10),
+                image: DecorationImage(
+                  fit: BoxFit.fitWidth,
+                  image: NetworkImage(
+                    rock!.imageUrl,
+                  )
+                )
+              ),
+            ),
+          ),
+          Text(
+            rock!.name,
+            style: const TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+        ],
+      );
+    } else {
+      return const SizedBox(
+        height: 100,
+        width: 100,
+        child: Center(
+          child: Text('...'),
+        ),
+      );
+    }
   }
 }
