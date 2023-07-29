@@ -1,4 +1,5 @@
 
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:hourock_flutter/consts/rockapi.dart';
 import 'package:hourock_flutter/models/favorite.dart';
@@ -329,7 +330,7 @@ class RockGridItem extends StatelessWidget {
                 borderRadius: BorderRadius.circular(10),
                 image: DecorationImage(
                   fit: BoxFit.fitWidth,
-                  image: NetworkImage(
+                  image: CachedNetworkImageProvider(
                     rock!.imageUrl,
                   )
                 )

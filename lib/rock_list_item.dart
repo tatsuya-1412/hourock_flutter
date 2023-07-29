@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:hourock_flutter/rock_detail.dart';
 import 'package:hourock_flutter/models/rock.dart';
@@ -16,7 +17,7 @@ class RockListItem extends StatelessWidget {
             borderRadius: BorderRadius.circular(10),
             image: DecorationImage(
               fit: BoxFit.fitWidth,
-              image: NetworkImage(
+              image: CachedNetworkImageProvider(
                 rock!.imageUrl,
               ),
             ),

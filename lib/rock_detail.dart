@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:hourock_flutter/models/favorite.dart';
 import 'package:hourock_flutter/models/rock.dart';
@@ -33,22 +34,12 @@ class RockDetail extends StatelessWidget {
                   children: [
                     Container(
                       padding: const EdgeInsets.all(32),
-                      child: Image.network(
-                        rock.imageUrl,
+                      child: CachedNetworkImage(
+                        imageUrl: rock.imageUrl,
                         width: 100,
                         height: 100,
                       ),
                     ),
-                    // Container(
-                    //   padding: const EdgeInsets.all(8),
-                    //   child: Text(
-                    //     rock.id,
-                    //     style: TextStyle(
-                    //       fontSize: 16,
-                    //       fontWeight: FontWeight.bold,
-                    //     ),
-                    //   ),
-                    // )
                   ]
               ),
               Text(

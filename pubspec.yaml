@@ -42,6 +42,7 @@ dependencies:
   sqflite: ^2.2.8+4
   path: ^1.8.2
   sqflite_common_ffi_web: ^0.3.5+1
+  cached_network_image: ^3.2.3
 
 dev_dependencies:
   flutter_test:
